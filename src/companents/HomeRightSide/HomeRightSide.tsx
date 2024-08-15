@@ -131,7 +131,9 @@ const HomeRightSide = ({
           )}
           <View style={{marginTop:-230, zIndex:55, position:'relative'}}>
 
-            <Button title="Take again" onPress={() => setCameraPreview(null)} />
+            <Button title="Take again" onPress={() => {setAcceptCameraPreview(null)
+            setCameraPreview(null)
+            }} />
           </View>
         </View>
       ) : (
@@ -172,7 +174,7 @@ const HomeRightSide = ({
             <Image source={{ uri: selectedImage?.uri }} style={styles.fullscreenImage} />
             <View style={styles.buttonContainer}>
 
-            <Button title="Close" onPress={() => setShotModalVisible(false)} />
+            <Button title="Close" onPress={() => setModalVisible(false)} />
             {itemExists ? (
               <Button title="Delete" onPress={handleDelete} />
             ) : (
