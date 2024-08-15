@@ -4,6 +4,8 @@
 <dict>
 	<key>NSCameraUsageDescription</key>
 	<string>We need your permission to use the camera</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need your permission to use the microphone</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need your permission to access the photo library</string>
 	<key>CFBundleDevelopmentRegion</key>

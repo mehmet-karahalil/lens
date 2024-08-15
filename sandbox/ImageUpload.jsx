@@ -7,7 +7,6 @@ const ImageUpload = () => {
     const [responseImage, setResponseImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
-
     const handleFileChange = (e, setImage) => {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -17,17 +16,14 @@ const ImageUpload = () => {
         };
         reader.readAsDataURL(file);
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!sourceImage || !targetImage) {
             setMessage('Please upload both images.');
             return;
         }
-
         setLoading(true);
         setMessage('');
-
         const payload = {
             source_image: sourceImage,
             target_image: targetImage,
@@ -55,7 +51,6 @@ const ImageUpload = () => {
             det_thresh: 0.5,
             det_maxnum: 0
         };
-
         try {
             const response = await axios.post('https://ai.github.rocks/reactor/image', payload, {
                 headers: { 'Content-Type': 'application/json' }

@@ -29,8 +29,11 @@ const Camera: React.FC = () => {
   }>(null);
   const [apiPhotos, setApiPhotos] = useState<{ uri: string | undefined }[]>([]);
 
-
-
+  const [sourceImage, setSourceImage] = useState<string | null>(null);
+  const [targetImage, setTargetImage] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
+  const [responseImage, setResponseImage] = useState<null | string>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -50,7 +53,7 @@ const Camera: React.FC = () => {
       includeBase64: false,
       saveToPhotos: true,
     };
-
+    
     launchCamera(options, async (response: ImagePickerResponse) => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -60,28 +63,59 @@ const Camera: React.FC = () => {
         const source = { uri: response.assets[0].uri };
         setPhoto(source);
         setAllPhoto([source, ...allPhoto]);
-
-        // Fotoğrafı API'ye gönder
+        setTargetImage(response.assets[0].uri || null);
+        
+        const sourceImageUri = 'path/to/source/image.jpg';
+        setSourceImage(sourceImageUri);
+    
+        if (!sourceImageUri || !response.assets[0].uri) {
+          setMessage('Please upload both images.');
+          return;
+        }
+    
+        const payload = {
+          source_image: sourceImageUri,
+          target_image: response.assets[0].uri,
+          source_faces_index: [0],
+          face_index: [0],
+          upscaler: "None",
+          scale: 1,
+          upscale_visibility: 1,
+          face_restorer: "None",
+          restorer_visibility: 1,
+          codeformer_weight: 0.5,
+          restore_first: 1,
+          model: "inswapper_128.onnx",
+          gender_source: 0,
+          gender_target: 0,
+          save_to_file: 0,
+          result_file_path: "",
+          device: "GPU",
+          mask_face: 0,
+          select_source: 0,
+          face_model: "None",
+          source_folder: "",
+          random_image: 0,
+          upscale_force: 0,
+          det_thresh: 0.5,
+          det_maxnum: 0
+        };
+    
         try {
-          const formData = new FormData();
-          formData.append('photo', {
-            uri: response.assets[0].uri,
-            type: response.assets[0].type,
-            name: response.assets[0].fileName,
-          });
-
-          const apiResponse = await axios.post('YOUR_API_ENDPOINT', formData, {
+          const apiResponse = await axios.post('https://ai.github.rocks/reactor/image', payload, {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              'Content-Type': 'application/json',
             },
           });
-
-          // API'den gelen yanıtı işleyin
-          if (apiResponse.data && apiResponse.data.photos) {
-            setApiPhotos(apiResponse.data.photos);
-          }
+    
+          const responseImageBase64 = apiResponse.data.image; // Assuming the API returns a single image
+          setResponseImage(`data:image/png;base64,${responseImageBase64}`);
+          setMessage('Request successful.');
         } catch (error) {
+          setMessage('Request failed.');
           console.error('API Error: ', error);
+        } finally {
+          setLoading(false);
         }
       }
     });

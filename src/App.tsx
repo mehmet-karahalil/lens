@@ -8,6 +8,7 @@ import {store, persistor} from './store/Store';
 import favorites from './pages/favorites';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {PersistGate} from 'redux-persist/integration/react';
+import Home from './pages/Home';
 
 const BottomTabs = createBottomTabNavigator();
 
@@ -25,8 +26,9 @@ function App(): React.JSX.Element {
             }}>
             <BottomTabs.Screen
               name="Home"
-              component={Camera}
+              component={Home}
               options={{
+                headerShown: false,
                 title: 'Home',
                 headerTitleAlign: 'center',
                 tabBarIcon: ({color, size}) => (
