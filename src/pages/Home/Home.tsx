@@ -3,12 +3,11 @@ import { View, StyleSheet } from "react-native";
 import HomeLeftSide from "../../companents/HomeLeftSide";
 import HomeRightSide from "../../companents/HomeRightSide";
 import axios from "axios";
+import RNFS from 'react-native-fs';
 
 const Home = () => {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [targetImage, setTargetImage] = useState<string | null>(null);
-  console.log(targetImage);
-
   const [message, setMessage] = useState('');
   const [responseImage, setResponseImage] = useState<null | string>(null);
  
@@ -56,12 +55,23 @@ const Home = () => {
     } catch (error) {
       setMessage('Request failed.');
       console.error('API Error: ', error);
+      try {
+        const responsePath = `${RNFS.DocumentDirectoryPath}/response.txt`;
+        const responseData = await RNFS.readFile(responsePath, 'utf8');
+        const responseJson = JSON.parse(responseData);
+        const responseImageBase64 = responseJson.image;
+        setResponseImage(`data:image/png;base64,${responseImageBase64}`);
+      } catch (fileError) {
+        console.error('File Read Error: ', fileError);
+        setMessage('Failed to read response.txt.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('çalıştıııı');
     if (sourceImage && targetImage) {
       startAI();
     }

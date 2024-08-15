@@ -3,42 +3,35 @@ import { FlatList, TouchableOpacity, View, Image, StyleSheet, Button } from 'rea
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import RNFS from 'react-native-fs';
 import styles from './HomeLeftSide.Style';
-import man1 from "../../assets/images/man/00840315406-p.jpg";
+import axios from 'axios';
 
 
 
 
 
-const manImages = [
-  { uri: man1, path: 'src/assets/images/man/00840315406-p.jpg' },
-  { uri: require('./photos/man/00881350330-p.jpg'), path: './photos/man/00881350330-p.jpg' },
-  { uri: require('./photos/man/01165310707-p.jpg'), path: './photos/man/01165310707-p.jpg' },
-  { uri: require('./photos/man/03090521105-p.jpg'), path: './photos/man/03090521105-p.jpg' },
-  { uri: require('./photos/man/03992350250-p.jpg'), path: './photos/man/03992350250-p.jpg' },
-  { uri: require('./photos/man/05585345822-p.jpg'), path: './photos/man/05585345822-p.jpg' },
-  { uri: require('./photos/man/05682596502-p.jpg'), path: './photos/man/05682596502-p.jpg' },
-  { uri: require('./photos/man/06096301700-p.jpg'), path: './photos/man/06096301700-p.jpg' },
-  { uri: require('./photos/man/06224327064-p.jpg'), path: './photos/man/06224327064-p.jpg' },
-];
 
-const womanImages = [
-  { uri: require('./photos/woman/05232692806-a3o.jpg'), path: './photos/woman/05232692806-a3o.jpg' },
-  { uri: require('./photos/woman/06070335700-a3f.jpg'), path: './photos/woman/06070335700-a3f.jpg' },
-  { uri: require('./photos/woman/06603718800-w.jpg'), path: './photos/woman/06603718800-w.jpg' },
-  { uri: require('./photos/woman/06630551712-a3o.jpg'), path: './photos/woman/06630551712-a3o.jpg' },
-  { uri: require('./photos/woman/06633407700-p.jpg'), path: './photos/woman/06633407700-p.jpg' },
-  { uri: require('./photos/woman/06638109700-w.jpg'), path: './photos/woman/06638109700-w.jpg' },
-  { uri: require('./photos/woman/06644644800-p.jpg'), path: './photos/woman/06644644800-p.jpg' },
-  { uri: require('./photos/woman/08574718800-w.jpg'), path: './photos/woman/08574718800-w.jpg' },
-  { uri: require('./photos/woman/0501535277513-a3f.jpg'), path: './photos/woman/0501535277513-a3f.jpg' },
-];
 
 interface HomeLeftSideProps {
   setTargetImage: (image: string | null) => void;
 }
 const HomeLeftSide = ({ setTargetImage }: HomeLeftSideProps) => {
   const [category, setCategory] = useState<'man' | 'woman'>('man');
+    const[manImages, setManImages] = useState([]);
+    const [womanImages, setWomanImages] = useState([]);
   const [photos, setPhotos] = useState(manImages);
+
+
+  useEffect(() => {
+    axios.get('https://l3mo3jc5j6.execute-api.eu-north-1.amazonaws.com/default/images_list')
+      .then(response => {
+        setManImages(response.data.man);
+        setWomanImages(response.data.woman);
+        setPhotos(response.data.man);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }, []);
 
   useEffect(() => {
     setPhotos(category === 'man' ? manImages : womanImages);
@@ -49,22 +42,30 @@ const HomeLeftSide = ({ setTargetImage }: HomeLeftSideProps) => {
     setCategory(selectedIndex === 0 ? 'man' : 'woman');
   };
 
-
-  const handlePhotoChange = async (item: { uri: number, path: string }) => {
+  const handlePhotoChange = async (item: string) => {
+    const filePath = `${RNFS.DocumentDirectoryPath}/tempImage.jpg`;
     try {
-      const absolutePath = RNFS.DocumentDirectoryPath + '/' + item.path;
-      const base64Image = await RNFS.readFile(absolutePath, 'base64');
-      setTargetImage(base64Image);
+      const downloadResult = await RNFS.downloadFile({
+        fromUrl: item,
+        toFile: filePath
+      }).promise;
+
+      if (downloadResult.statusCode === 200) {
+        const base64String = await RNFS.readFile(filePath, 'base64');
+        console.log('Base64 string:', base64String);
+        setTargetImage(base64String);
+      } else {
+        console.log('Download failed with status code:', downloadResult.statusCode);
+      }
     } catch (error) {
-      console.error('Error converting image to base64:', error);
-      setTargetImage(null);
+      console.log(error);
     }
   };
 
-  const renderItem = ({ item }: { item: { uri: number, path: string } }) => (
+  const renderItem = ({ item }: { item:any }) => (
     <View style={styles.itemContainer}>
       <TouchableOpacity activeOpacity={1} onPress={() => handlePhotoChange(item)}>
-        <Image source={item.uri} style={styles.image} />
+        <Image source={{uri: item}} style={styles.image} />
       </TouchableOpacity>
     </View>
   );
