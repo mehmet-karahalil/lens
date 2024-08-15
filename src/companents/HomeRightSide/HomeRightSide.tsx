@@ -65,6 +65,7 @@ const HomeRightSide = ({
 
   const deniedPhoto = () => {
     setCameraPreview(null);
+    setAcceptCameraPreview(null);
     setShotModalVisible(false);
   }
 
