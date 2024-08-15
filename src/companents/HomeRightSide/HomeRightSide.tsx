@@ -24,15 +24,20 @@ const HomeRightSide = ({
   const [cameraPermission, setCameraPermission] =
     useState<CameraPermissionStatus>('not-determined');
   const [cameraPreview, setCameraPreview] = useState<string | null>(null);
+  const [acceptCameraPreview, setAcceptCameraPreview] = useState<string | null>(null);
   const cameraRef = useRef<Camera>(null);
   const [cameraDevice, setCameraDevice] = useState<'front' | 'back'>('back');
-
-
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<null | {
     uri: string | undefined;
   }>(null);
+  const [shotModalVisible, setShotModalVisible] = useState(false);
+
+  const openModal = (image: { uri: string | undefined }) => {
+    setSelectedImage(image);
+    setModalVisible(true);
+  };
 
 
 
@@ -51,10 +56,19 @@ const HomeRightSide = ({
       const uri =
       Platform.OS === 'android' ? `file://${photo.path}` : photo.path;
       setCameraPreview(uri);
+      setAcceptCameraPreview(uri);
+      setShotModalVisible(true);
       const base64Image = await RNFS.readFile(photo.path, 'base64');
       setSourceImage(base64Image);
     }
   };
+
+  const deniedPhoto = () => {
+    setCameraPreview(null);
+    setShotModalVisible(false);
+  }
+
+
 
   const devices = useCameraDevices();
   const device = devices.find(d => d.position === cameraDevice);
@@ -71,10 +85,7 @@ const HomeRightSide = ({
 
 
 
-  const openModal = (image: { uri: string | undefined }) => {
-    setSelectedImage(image);
-    setModalVisible(true);
-  };
+
 
   const favorites = useSelector((state: any) => state.favorites.favorites);
   const dispatch = useDispatch();
@@ -102,21 +113,26 @@ const HomeRightSide = ({
 
   return (
     <View style={styles.allContainer}>
-      {cameraPreview ? (
+      {acceptCameraPreview ? (
         <View style={styles.rightContainer}>
-          <Image source={{uri: cameraPreview}} style={styles.image} />
+          <Image source={{uri: acceptCameraPreview}} style={styles.image} />
           {responseImage !== null ? (
-            <TouchableOpacity activeOpacity={1} onPress={() => openModal({uri: responseImage})}>
-            <Image source={{uri: responseImage}} style={styles.responseImage} />
+          <TouchableOpacity style={styles.responseImageContainer} activeOpacity={1} onPress={() => openModal({uri: responseImage})}>
+              <Image source={{uri: responseImage}} style={styles.responseImage} />
           </TouchableOpacity>
           ) : (
             <View>
-
+              {loading ? (
+                <Text style={styles.text}>Loading...</Text>
+              ) : (
             <Text style={styles.text} >{"<=== plese choose the target"} </Text>
-
+              )}
             </View>
           )}
-          <Button title="Take again" onPress={() => setCameraPreview(null)} />
+          <View style={{marginTop:-230, zIndex:55, position:'relative'}}>
+
+            <Button title="Take again" onPress={() => setCameraPreview(null)} />
+          </View>
         </View>
       ) : (
         <View style={styles.rightContainer}>
@@ -142,7 +158,7 @@ const HomeRightSide = ({
       )}
 
 
-<Modal
+    <Modal
         visible={modalVisible}
         transparent={true}
         animationType="fade"
@@ -154,12 +170,35 @@ const HomeRightSide = ({
             onPress={() => setModalVisible(false)}
           >
             <Image source={{ uri: selectedImage?.uri }} style={styles.fullscreenImage} />
-            <Button title="Close" onPress={() => setModalVisible(false)} />
+            <View style={styles.buttonContainer}>
+
+            <Button title="Close" onPress={() => setShotModalVisible(false)} />
             {itemExists ? (
               <Button title="Delete" onPress={handleDelete} />
             ) : (
               <Button title="Save" onPress={handleSave} />
             )}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={shotModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShotModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.modalBackground}
+            onPress={() => setShotModalVisible(false)}
+          >
+            <Image source={{ uri: cameraPreview?.toString() }} style={styles.fullscreenImage} />
+            <View style={styles.buttonContainer}>
+              <Button title="Accept" onPress={() => setShotModalVisible(false)} />
+              <Button title="Take again" onPress={deniedPhoto} />
+            </View>
           </TouchableOpacity>
         </View>
       </Modal>
@@ -167,11 +206,15 @@ const HomeRightSide = ({
   );
 };
 const styles = StyleSheet.create({
+  responseImageContainer: {
+    width: '100%',
+    height: '100%',
+  },
   text: {
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: 'red',
+    color: 'black',
   },
   allContainer: {
     width: '72%',
@@ -194,20 +237,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: '100%',
-    height: 300,
+    width: '60%',
+    alignSelf: 'flex-end',
+    height: "20%",
     marginTop: 10,
     borderRadius: 10,
   },
   responseImage: {
     width: '100%',
-    height: 400,
+    height: "75%", // Replace 'calc(100% - 160)' with a number value.
     marginTop: 10,
     borderRadius: 10,
+    marginBottom:0,
   },
   buttonContainer: {
     flexDirection: 'row',
+    gap: 10,
     justifyContent: 'space-around',
+    marginTop:0,
   },
   modalContainer: {
     flex: 1,

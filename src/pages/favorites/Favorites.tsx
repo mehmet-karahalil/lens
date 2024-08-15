@@ -72,12 +72,16 @@ const Favorites = () => {
               source={{uri: selectedImage?.uri}}
               style={styles.fullscreenImage}
             />
+                        <View style={styles.buttonContainer}>
+
+
             <Button title="Close" onPress={() => setModalVisible(false)} />
             {itemExists ? (
               <Button title="Delete" onPress={handleDelete} />
             ) : (
               <Button title="Save" onPress={handleSave} />
             )}
+            </View>
           </TouchableOpacity>
         </View>
       </Modal>

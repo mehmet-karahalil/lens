@@ -15,6 +15,7 @@ const Home = () => {
 
   const startAI = async () => {
     setLoading(true);
+    setResponseImage(null);
     const payload = {
       source_image: sourceImage,
       target_image: targetImage,
@@ -80,6 +81,7 @@ const Home = () => {
     <View style={styles.mainContainer}>
       <HomeLeftSide
         setTargetImage={setTargetImage}
+        loading={loading}
       />
       <View style={styles.divider} />
       <HomeRightSide 

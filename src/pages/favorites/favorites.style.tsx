@@ -27,4 +27,10 @@ export default StyleSheet.create({
         height: '90%',
         resizeMode: 'contain',
       },
+      buttonContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        justifyContent: 'space-around',
+        marginTop:0,
+      },
 });
