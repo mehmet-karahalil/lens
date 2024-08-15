@@ -5,6 +5,8 @@ const styles = StyleSheet.create({
     width: '28%',
     backgroundColor: '#f0f0f0',
     padding: 0,
+    paddingTop: 10,
+    paddingHorizontal: 2,
   },
   segmentControl: {
    marginBottom: 10,

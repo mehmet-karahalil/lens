@@ -71,7 +71,6 @@ const Home = () => {
   };
 
   useEffect(() => {
-    console.log('çalıştıııı');
     if (sourceImage && targetImage) {
       startAI();
     }

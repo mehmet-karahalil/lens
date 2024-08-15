@@ -1,11 +1,14 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {Button, Image, Text, View, StyleSheet, Platform} from 'react-native';
+import {Button, Image, Text, View, StyleSheet, Platform, TouchableOpacity} from 'react-native';
 import {
   Camera,
   useCameraDevices,
   CameraPermissionStatus,
 } from 'react-native-vision-camera';
 import RNFS from 'react-native-fs';
+import { Modal } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { addFavorite, deleteFavorite } from '../../store/Favorites';
 
 interface HomeRightSideProps {
   responseImage: string | null;
@@ -23,6 +26,16 @@ const HomeRightSide = ({
   const [cameraPreview, setCameraPreview] = useState<string | null>(null);
   const cameraRef = useRef<Camera>(null);
   const [cameraDevice, setCameraDevice] = useState<'front' | 'back'>('back');
+
+
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<null | {
+    uri: string | undefined;
+  }>(null);
+
+
+
 
   useEffect(() => {
     const requestPermissions = async () => {
@@ -55,26 +68,52 @@ const HomeRightSide = ({
     }
   };
 
+
+
+
+  const openModal = (image: { uri: string | undefined }) => {
+    setSelectedImage(image);
+    setModalVisible(true);
+  };
+
+  const favorites = useSelector((state: any) => state.favorites.favorites);
+  const dispatch = useDispatch();
+
+  const itemExists = favorites.some(
+    (favorite: {  uri: string | undefined  }) =>
+      favorite.uri === selectedImage?.uri,
+  );
+
+  const handleSave = () => {
+    if (selectedImage && selectedImage.uri) {
+      dispatch(
+        addFavorite(selectedImage?.uri || ''),
+      );
+      setModalVisible(false);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedImage && selectedImage.uri) {
+      dispatch(deleteFavorite(selectedImage.uri));
+      setModalVisible(false);
+    }
+  };
+
   return (
     <View style={styles.allContainer}>
       {cameraPreview ? (
         <View style={styles.rightContainer}>
           <Image source={{uri: cameraPreview}} style={styles.image} />
           {responseImage !== null ? (
-            <Image source={{uri: responseImage}} style={styles.image} />
+            <TouchableOpacity activeOpacity={1} onPress={() => openModal({uri: responseImage})}>
+            <Image source={{uri: responseImage}} style={styles.responseImage} />
+          </TouchableOpacity>
           ) : (
             <View>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== plese choose the target"} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
-            <Text>{"<=== "} </Text>
+
+            <Text style={styles.text} >{"<=== plese choose the target"} </Text>
+
             </View>
           )}
           <Button title="Take again" onPress={() => setCameraPreview(null)} />
@@ -101,10 +140,39 @@ const HomeRightSide = ({
           </View>
         </View>
       )}
+
+
+<Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.modalBackground}
+            onPress={() => setModalVisible(false)}
+          >
+            <Image source={{ uri: selectedImage?.uri }} style={styles.fullscreenImage} />
+            <Button title="Close" onPress={() => setModalVisible(false)} />
+            {itemExists ? (
+              <Button title="Delete" onPress={handleDelete} />
+            ) : (
+              <Button title="Save" onPress={handleSave} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 };
 const styles = StyleSheet.create({
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: 'red',
+  },
   allContainer: {
     width: '72%',
     padding: 10,
@@ -131,9 +199,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 10,
   },
+  responseImage: {
+    width: '100%',
+    height: 400,
+    marginTop: 10,
+    borderRadius: 10,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  modalBackground: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: '90%',
+    height: '90%',
+    resizeMode: 'contain',
   },
 });
 

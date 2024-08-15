@@ -52,7 +52,6 @@ const HomeLeftSide = ({ setTargetImage }: HomeLeftSideProps) => {
 
       if (downloadResult.statusCode === 200) {
         const base64String = await RNFS.readFile(filePath, 'base64');
-        console.log('Base64 string:', base64String);
         setTargetImage(base64String);
       } else {
         console.log('Download failed with status code:', downloadResult.statusCode);
