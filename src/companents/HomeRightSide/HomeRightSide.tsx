@@ -21,26 +21,23 @@ const HomeRightSide = ({
   loading,
   setSourceImage,
 }: HomeRightSideProps) => {
+  const dispatch = useDispatch();
+  const favorites = useSelector((state: any) => state.favorites.favorites);
+
   const [cameraPermission, setCameraPermission] =
     useState<CameraPermissionStatus>('not-determined');
   const [cameraPreview, setCameraPreview] = useState<string | null>(null);
   const [acceptCameraPreview, setAcceptCameraPreview] = useState<string | null>(null);
   const cameraRef = useRef<Camera>(null);
   const [cameraDevice, setCameraDevice] = useState<'front' | 'back'>('back');
-
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<null | {
-    uri: string | undefined;
-  }>(null);
+  const [selectedImage, setSelectedImage] = useState<null | { uri: string | undefined }>(null);
   const [shotModalVisible, setShotModalVisible] = useState(false);
 
   const openModal = (image: { uri: string | undefined }) => {
     setSelectedImage(image);
     setModalVisible(true);
   };
-
-
-
 
   useEffect(() => {
     const requestPermissions = async () => {
@@ -53,8 +50,7 @@ const HomeRightSide = ({
   const takePhoto = async () => {
     if (cameraRef.current) {
       const photo = await cameraRef.current.takePhoto();
-      const uri =
-      Platform.OS === 'android' ? `file://${photo.path}` : photo.path;
+      const uri = Platform.OS === 'android' ? `file://${photo.path}` : photo.path;
       setCameraPreview(uri);
       setAcceptCameraPreview(uri);
       setShotModalVisible(true);
@@ -67,40 +63,28 @@ const HomeRightSide = ({
     setCameraPreview(null);
     setAcceptCameraPreview(null);
     setShotModalVisible(false);
-  }
-
-
+  };
 
   const devices = useCameraDevices();
   const device = devices.find(d => d.position === cameraDevice);
 
   if (device == null) return <Text>Loading...</Text>;
+
   const SwichCamera = () => {
-    if (cameraDevice == 'front') {
+    if (cameraDevice === 'front') {
       setCameraDevice('back');
     } else {
       setCameraDevice('front');
     }
   };
 
-
-
-
-
-
-  const favorites = useSelector((state: any) => state.favorites.favorites);
-  const dispatch = useDispatch();
-
   const itemExists = favorites.some(
-    (favorite: {  uri: string | undefined  }) =>
-      favorite.uri === selectedImage?.uri,
+    (favorite: { uri: string | undefined }) => favorite.uri === selectedImage?.uri,
   );
 
   const handleSave = () => {
     if (selectedImage && selectedImage.uri) {
-      dispatch(
-        addFavorite(selectedImage?.uri || ''),
-      );
+      dispatch(addFavorite(selectedImage.uri));
       setModalVisible(false);
     }
   };
@@ -118,30 +102,32 @@ const HomeRightSide = ({
         <View style={styles.rightContainer}>
           <Image source={{uri: acceptCameraPreview}} style={styles.image} />
           {responseImage !== null ? (
-          <TouchableOpacity style={styles.responseImageContainer} activeOpacity={1} onPress={() => openModal({uri: responseImage})}>
+            <TouchableOpacity
+              style={styles.responseImageContainer}
+              activeOpacity={1}
+              onPress={() => openModal({uri: responseImage})}>
               <Image source={{uri: responseImage}} style={styles.responseImage} />
-          </TouchableOpacity>
+            </TouchableOpacity>
           ) : (
             <View>
               {loading ? (
                 <Text style={styles.text}>Loading...</Text>
               ) : (
-            <Text style={styles.text} >{"<=== plese choose the target"} </Text>
+                <Text style={styles.text}>{"<=== plese choose the target"}</Text>
               )}
             </View>
           )}
-          <View style={{marginTop:-230, zIndex:55, position:'relative'}}>
-
-            <Button title="Take again" onPress={() => {setAcceptCameraPreview(null)
-            setCameraPreview(null)
+          <View style={{marginTop: -230, zIndex: 55, position: 'relative'}}>
+            <Button title="Take again" onPress={() => {
+              setAcceptCameraPreview(null);
+              setCameraPreview(null);
             }} />
           </View>
         </View>
       ) : (
         <View style={styles.rightContainer}>
           <View style={styles.cameraContainer}>
-            {cameraPermission !== null &&
-            cameraPermission === ('granted' as CameraPermissionStatus) ? (
+            {cameraPermission !== null && cameraPermission === ('granted' as CameraPermissionStatus) ? (
               <Camera
                 ref={cameraRef}
                 style={styles.preview}
@@ -159,9 +145,7 @@ const HomeRightSide = ({
           </View>
         </View>
       )}
-
-
-    <Modal
+      <Modal
         visible={modalVisible}
         transparent={true}
         animationType="fade"
@@ -172,20 +156,18 @@ const HomeRightSide = ({
             style={styles.modalBackground}
             onPress={() => setModalVisible(false)}
           >
-            <Image source={{ uri: selectedImage?.uri }} style={styles.fullscreenImage} />
+            <Image source={{uri: selectedImage?.uri}} style={styles.fullscreenImage} />
             <View style={styles.buttonContainer}>
-
-            <Button title="Close" onPress={() => setModalVisible(false)} />
-            {itemExists ? (
-              <Button title="Delete" onPress={handleDelete} />
-            ) : (
-              <Button title="Save" onPress={handleSave} />
-            )}
+              <Button title="Close" onPress={() => setModalVisible(false)} />
+              {itemExists ? (
+                <Button title="Delete" onPress={handleDelete} />
+              ) : (
+                <Button title="Save" onPress={handleSave} />
+              )}
             </View>
           </TouchableOpacity>
         </View>
       </Modal>
-
       <Modal
         visible={shotModalVisible}
         transparent={true}
@@ -197,7 +179,7 @@ const HomeRightSide = ({
             style={styles.modalBackground}
             onPress={() => setShotModalVisible(false)}
           >
-            <Image source={{ uri: cameraPreview?.toString() }} style={styles.fullscreenImage} />
+            <Image source={{uri: cameraPreview?.toString()}} style={styles.fullscreenImage} />
             <View style={styles.buttonContainer}>
               <Button title="Accept" onPress={() => setShotModalVisible(false)} />
               <Button title="Take again" onPress={deniedPhoto} />
@@ -208,6 +190,7 @@ const HomeRightSide = ({
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   responseImageContainer: {
     width: '100%',
